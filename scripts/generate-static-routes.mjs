@@ -18,6 +18,8 @@ const db = getFirestore(app);
 
 const template = readFileSync("dist/index.html", "utf8");
 
+const BASE = "https://new.flashnews24.site";
+
 const routes = [
   "/about",
   "/contact",
@@ -47,7 +49,14 @@ for (const route of uniqueRoutes) {
   const target = join("dist", clean, "index.html");
 
   mkdirSync(join("dist", clean), { recursive: true });
-  writeFileSync(target, template);
+  let page = template;
+  const canonicalUrl = BASE + (route === "/" ? "/" : route);
+  page = page.replace(/<link rel="canonical"[^>]*>/i, "");
+  page = page.replace(
+    "</head>",
+    '  <link rel="canonical" href="' + canonicalUrl + '" />' + String.fromCharCode(10) + "</head>"
+  );
+  writeFileSync(target, page);
 }
 
 console.log("Static route files generated:", uniqueRoutes.length);
