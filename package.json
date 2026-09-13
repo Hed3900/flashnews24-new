@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate:sitemap && vite build",
+    "build": "npm run generate:sitemap && vite build && npm run generate:routes",
     "lint": "oxlint",
     "preview": "vite preview",
-    "generate:sitemap": "node scripts/generate-sitemap.mjs"
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "generate:routes": "node scripts/generate-static-routes.mjs"
   },
   "dependencies": {
     "firebase": "^12.19.0",
