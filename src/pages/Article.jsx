@@ -101,7 +101,7 @@ function Article() {
 
     canonical.setAttribute(
       "href",
-      `${window.location.origin}/flashnews24-new/article/${post.slug}`
+      `${window.location.origin}/article/${post.slug}`
     );
 
     return () => {
