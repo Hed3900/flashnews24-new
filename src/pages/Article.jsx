@@ -133,10 +133,31 @@ function Article() {
 
       <Header />
 
-      {/* BREAKING BAR */}
-      <div className="breaking-bar">
-        <span className="breaking-label">BREAKING</span>
-        <span>FlashNews24 — Latest news, explained clearly.</span>
+      {/* BREAKING NEWS */}
+      <div className="professional-breaking">
+        <div className="breaking-title">⚡ BREAKING NEWS</div>
+
+        <div className="breaking-scroll">
+          <div className="breaking-scroll-track">
+            {articleList.slice(0, 4).map((item) => (
+              <Link
+                key={item.id}
+                to={`/article/${item.slug}`}
+              >
+                {item.title}
+              </Link>
+            ))}
+
+            {articleList.slice(0, 4).map((item) => (
+              <Link
+                key={`${item.id}-copy`}
+                to={`/article/${item.slug}`}
+              >
+                {item.title}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
       <main
