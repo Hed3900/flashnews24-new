@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 
 const firebaseConfig = {
@@ -17,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const template = readFileSync("dist/index.html", "utf8");
-
 const BASE = "https://new.flashnews24.site";
 
 const routes = [
@@ -33,14 +32,70 @@ const routes = [
   "/category/science",
 ];
 
+const escapeHtml = (value = "") =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const stripHtml = (value = "") =>
+  String(value)
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const descriptionFor = (post) => {
+  const text = stripHtml(
+    post.description ||
+    post.excerpt ||
+    post.content ||
+    ""
+  );
+
+  return text.length > 160
+    ? `${text.slice(0, 157).trim()}...`
+    : text;
+};
+
+const absoluteImageUrl = (value) => {
+  if (!value) return "";
+
+  try {
+    return new URL(value, BASE).href;
+  } catch {
+    return "";
+  }
+};
+
 const snap = await getDocs(collection(db, "posts"));
 
-for (const doc of snap.docs) {
-  const slug = doc.data()?.slug;
+const posts = snap.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+}));
+
+const articlePosts = [];
+
+for (const post of posts) {
+  const slug = post.slug;
+
   if (typeof slug === "string" && slug.trim()) {
     routes.push(`/article/${slug}`);
+    articlePosts.push(post);
   }
 }
+
+const postByRoute = new Map(
+  articlePosts.map((post) => [
+    `/article/${post.slug}`,
+    post,
+  ])
+);
 
 const uniqueRoutes = [...new Set(routes)];
 
@@ -48,17 +103,145 @@ for (const route of uniqueRoutes) {
   const clean = route.replace(/^\/+|\/+$/g, "");
   const target = join("dist", clean, "index.html");
 
-  mkdirSync(join("dist", clean), { recursive: true });
+  mkdirSync(join("dist", clean), {
+    recursive: true,
+  });
+
+  const canonicalUrl =
+    BASE + (route === "/" ? "/" : route);
+
   let page = template;
-  const canonicalUrl = BASE + (route === "/" ? "/" : route);
-  page = page.replace(/<link rel="canonical"[^>]*>/i, "");
+
+  const post = postByRoute.get(route);
+
+  if (post) {
+    const title =
+      post.title || "FlashNews24";
+
+    const description =
+      descriptionFor(post) ||
+      "Latest news and useful updates from FlashNews24.";
+
+    const image =
+      absoluteImageUrl(post.image);
+
+    page = page.replace(
+      /<title>[\s\S]*?<\/title>/i,
+      `<title>${escapeHtml(title)} | FlashNews24</title>`
+    );
+
+    page = page.replace(
+      /<meta\s+name=["']description["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:title["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:description["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:type["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:url["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:image["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:image:width["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+property=["']og:image:height["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+name=["']twitter:card["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+name=["']twitter:title["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+name=["']twitter:description["'][^>]*>/gi,
+      ""
+    );
+
+    page = page.replace(
+      /<meta\s+name=["']twitter:image["'][^>]*>/gi,
+      ""
+    );
+
+    const socialMeta = `
+    <meta name="description" content="${escapeHtml(description)}" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(description)}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="FlashNews24" />
+    <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
+    ${image ? `<meta property="og:image" content="${escapeHtml(image)}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />` : ""}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${escapeHtml(title)}" />
+    <meta name="twitter:description" content="${escapeHtml(description)}" />
+    ${image ? `<meta name="twitter:image" content="${escapeHtml(image)}" />` : ""}
+`;
+
+    page = page.replace(
+      "</head>",
+      `${socialMeta}\n</head>`
+    );
+  }
+
+  page = page.replace(
+    /<link\s+rel=["']canonical["'][^>]*>/gi,
+    ""
+  );
+
   page = page.replace(
     "</head>",
-    '  <link rel="canonical" href="' + canonicalUrl + '" />' + String.fromCharCode(10) + "</head>"
+    `  <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />\n</head>`
   );
+
   writeFileSync(target, page);
 }
 
-console.log("Static route files generated:", uniqueRoutes.length);
-console.log("Article routes:", uniqueRoutes.filter(r => r.startsWith("/article/")).length);
-console.log("Category/info routes:", uniqueRoutes.filter(r => !r.startsWith("/article/")).length);
+console.log(
+  "Static route files generated:",
+  uniqueRoutes.length
+);
+
+console.log(
+  "Article routes:",
+  articlePosts.length
+);
+
+console.log(
+  "Category/info routes:",
+  uniqueRoutes.filter(
+    (r) => !r.startsWith("/article/")
+  ).length
+);
+
+console.log(
+  "Article social preview metadata: ENABLED"
+);
