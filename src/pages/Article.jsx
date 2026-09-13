@@ -140,18 +140,27 @@ function Article() {
       </div>
 
       <main
-        className="article-page"
+        className="article-page"\n        style={{ touchAction: "pan-y" }}
         onTouchStart={(e) => {
-          touchStartX.current = e.touches[0].clientX;
+          const touch = e.touches[0];
+          touchStartX.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+          };
         }}
         onTouchEnd={(e) => {
-          if (touchStartX.current === null) return;
+          if (!touchStartX.current) return;
 
-          const touchEndX = e.changedTouches[0].clientX;
-          const distance = touchEndX - touchStartX.current;
+          const touchEnd = e.changedTouches[0];
+          const deltaX = touchEnd.clientX - touchStartX.current.x;
+          const deltaY = touchEnd.clientY - touchStartX.current.y;
+
           touchStartX.current = null;
 
-          if (Math.abs(distance) < 70) return;
+          // Ignore normal vertical scrolling.
+          if (Math.abs(deltaX) < 70 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+            return;
+          }
 
           const currentIndex = articleList.findIndex(
             (item) => item.slug === slug
@@ -159,11 +168,14 @@ function Article() {
 
           if (currentIndex === -1) return;
 
-          if (distance < 0 && currentIndex < articleList.length - 1) {
+          // Swipe left = next article
+          if (deltaX < 0 && currentIndex < articleList.length - 1) {
             navigate(`/article/${articleList[currentIndex + 1].slug}`);
+            return;
           }
 
-          if (distance > 0 && currentIndex > 0) {
+          // Swipe right = previous article
+          if (deltaX > 0 && currentIndex > 0) {
             navigate(`/article/${articleList[currentIndex - 1].slug}`);
           }
         }}
