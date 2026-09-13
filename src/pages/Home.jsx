@@ -533,6 +533,44 @@ function Home() {
           </>
         )}
 
+      
+        {/* TOP STORIES */}
+        <section className="top-stories-section">
+          <div className="section-title top-stories-title">
+            <h2>🔥 TOP STORIES</h2>
+            <span>Popular stories from FlashNews24</span>
+          </div>
+
+          <div className="top-stories-grid">
+            {posts.slice(13, 19).map((post) => (
+              <Link
+                to={`/article/${post.slug}`}
+                className="top-story-card"
+                key={post.id}
+              >
+                {post.image && (
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+
+                <div className="top-story-content">
+                  <span className="top-story-category">
+                    {post.category || "NEWS"}
+                  </span>
+
+                  <h3>{post.title}</h3>
+
+                  <small>◷ FlashNews24</small>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
       </main>
 
       {/* FOOTER */}
