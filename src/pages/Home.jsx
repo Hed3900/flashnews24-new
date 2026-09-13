@@ -355,7 +355,45 @@ function Home() {
               </div>
             </section>
 
-            {/* CATEGORY SECTIONS */}
+            
+{/* EDITOR'S PICKS */}
+<section className="editors-picks-section">
+  <div className="section-title editors-picks-title">
+    <h2>✦ EDITOR'S PICKS</h2>
+    <span>Curated stories from FlashNews24</span>
+  </div>
+
+  <div className="editors-picks-grid">
+    {posts.slice(17, 22).map((post, index) => (
+      <Link
+        to={`/article/${post.slug}`}
+        className={index === 0 ? "editor-main-card" : "editor-small-card"}
+        key={post.id}
+      >
+        {post.image && (
+          <img
+            src={post.image}
+            alt={post.title}
+            loading="lazy"
+            decoding="async"
+          />
+        )}
+
+        <div className="editor-card-content">
+          <span className="editor-category">
+            {post.category || "NEWS"}
+          </span>
+
+          <h3>{post.title}</h3>
+
+          <small>◷ FlashNews24</small>
+        </div>
+      </Link>
+    ))}
+  </div>
+</section>
+
+{/* CATEGORY SECTIONS */}
             <section className="category-sections">
 
               {categories.map(([label, slug]) => {
