@@ -318,6 +318,43 @@ function Home() {
 
             </section>
 
+            {/* LATEST NEWS */}
+            <section className="latest-news-section">
+              <div className="section-title latest-news-title">
+                <h2>📰 LATEST NEWS</h2>
+                <span>Latest stories from FlashNews24</span>
+              </div>
+
+              <div className="latest-news-grid">
+                {posts.slice(5, 17).map((post) => (
+                  <Link
+                    to={`/article/${post.slug}`}
+                    className="latest-news-card"
+                    key={post.id}
+                  >
+                    {post.image && (
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+
+                    <div className="latest-news-card-content">
+                      <span className="latest-news-category">
+                        {post.category || "NEWS"}
+                      </span>
+
+                      <h3>{post.title}</h3>
+
+                      <small>◷ FlashNews24</small>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
             {/* CATEGORY SECTIONS */}
             <section className="category-sections">
 
