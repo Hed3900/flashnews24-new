@@ -60,14 +60,6 @@ function Article() {
     loadArticle();
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div className="article-loading">
-        <h2>Loading FlashNews24...</h2>
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (!post) return;
 
@@ -109,13 +101,23 @@ function Article() {
 
     canonical.setAttribute(
       "href",
-      `${window.location.origin}/article/${post.slug}`
+      `${window.location.origin}/flashnews24-new/article/${post.slug}`
     );
 
     return () => {
       document.title = "FlashNews24 — Latest News, India & World Updates";
     };
   }, [post]);
+
+  if (loading) {
+    return (
+      <div className="article-loading">
+        <h2>Loading FlashNews24...</h2>
+      </div>
+    );
+  }
+
+
 
   if (!post) {
     return (
