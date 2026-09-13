@@ -140,7 +140,8 @@ function Article() {
       </div>
 
       <main
-        className="article-page"\n        style={{ touchAction: "pan-y" }}
+        className="article-page"
+        style={{ touchAction: "pan-y" }}
         onTouchStart={(e) => {
           const touch = e.touches[0];
           touchStartX.current = {
