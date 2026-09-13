@@ -7,7 +7,7 @@ import InfoPage from "./pages/InfoPage";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/flashnews24-new">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/article/:slug" element={<Article />} />
