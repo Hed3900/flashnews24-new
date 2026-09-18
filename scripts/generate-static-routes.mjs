@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 
 const firebaseConfig = {
@@ -82,9 +82,9 @@ const posts = snap.docs.map((doc) => ({
 const articlePosts = [];
 
 for (const post of posts) {
-  const slug = post.slug;
+  const slug = typeof post.slug === "string" ? post.slug.trim() : "";
 
-  if (typeof slug === "string" && slug.trim()) {
+  if (slug) {
     routes.push(`/article/${slug}`);
     articlePosts.push(post);
   }
@@ -92,7 +92,7 @@ for (const post of posts) {
 
 const postByRoute = new Map(
   articlePosts.map((post) => [
-    `/article/${post.slug}`,
+    `/article/${typeof post.slug === "string" ? post.slug.trim() : ""}`,
     post,
   ])
 );
@@ -223,7 +223,32 @@ for (const route of uniqueRoutes) {
   );
 
   writeFileSync(target, page);
+
+  if (!existsSync(target)) {
+    throw new Error(`STATIC ROUTE FAILED: ${route}`);
+  }
 }
+
+const missingArticleRoutes = articlePosts.filter((post) => {
+  const slug = typeof post.slug === "string" ? post.slug.trim() : "";
+  if (!slug) return false;
+  const target = join("dist", "article", slug, "index.html");
+  return !existsSync(target);
+});
+
+if (missingArticleRoutes.length > 0) {
+  console.error("MISSING ARTICLE ROUTES:");
+  for (const post of missingArticleRoutes) {
+    console.error(`- ${post.slug}`);
+  }
+  throw new Error(
+    `Static route validation failed: ${missingArticleRoutes.length} article route(s) missing.`
+  );
+}
+
+console.log(
+  "Static route validation: PASSED"
+);
 
 console.log(
   "Static route files generated:",
