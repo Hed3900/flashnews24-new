@@ -41,7 +41,7 @@ const slugs = [...new Set(
 
 const urls = [
   ...staticUrls,
-  ...slugs.map((slug) => `/article/${encodeURIComponent(slug)}`)
+  ...slugs.map((slug) => `/article/${encodeURIComponent(slug)}/`)
 ];
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
