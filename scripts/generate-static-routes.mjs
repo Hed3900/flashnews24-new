@@ -72,6 +72,30 @@ const absoluteImageUrl = (value) => {
   }
 };
 
+const socialImageUrl = (value) => {
+  const image = absoluteImageUrl(value);
+
+  if (!image) return "";
+
+  try {
+    const url = new URL(image);
+
+    if (url.hostname !== "res.cloudinary.com") {
+      return image;
+    }
+
+    const parts = url.pathname.split("/upload/");
+
+    if (parts.length !== 2) {
+      return image;
+    }
+
+    return `${url.origin}${parts[0]}/upload/c_fill,w_1200,h_630,f_jpg,q_auto/${parts[1]}`;
+  } catch {
+    return image;
+  }
+};
+
 const snap = await getDocs(collection(db, "posts"));
 
 const posts = snap.docs.map((doc) => ({
@@ -123,7 +147,7 @@ for (const route of uniqueRoutes) {
       "Latest news and useful updates from FlashNews24.";
 
     const image =
-      absoluteImageUrl(post.image);
+      socialImageUrl(post.image);
 
     page = page.replace(
       /<title>[\s\S]*?<\/title>/i,
